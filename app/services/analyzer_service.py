@@ -1,7 +1,19 @@
 from datetime import datetime
 from typing import List, Tuple
 from app.schemas.analyze import AnalyzeResponse, TaskRecordItem
-from firebase_admin import firestore
+import os
+import json
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# 🔥 Firebase 初期化
+if not firebase_admin._apps:  # 既に初期化されていない場合のみ
+    firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if not firebase_creds_json:
+        raise ValueError("FIREBASE_CREDENTIALS 環境変数が設定されていません")
+    cred_dict = json.loads(firebase_creds_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
