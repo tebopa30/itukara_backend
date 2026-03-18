@@ -6,16 +6,21 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 🔥 Firebase 初期化
-if not firebase_admin._apps:  # 既に初期化されていない場合のみ
-    firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
-    if not firebase_creds_json:
-        raise ValueError("FIREBASE_CREDENTIALS 環境変数が設定されていません")
-    cred_dict = json.loads(firebase_creds_json)
-    cred = credentials.Certificate(cred_dict)
-    firebase_admin.initialize_app(cred)
+def get_firestore_client() -> firestore.Client:
+    if not firebase_admin._apps:
+        firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
+        if not firebase_creds_json:
+            raise ValueError("FIREBASE_CREDENTIALS が設定されていません")
+        
+        # 🔹 ここで改行文字を修正
+        cred_dict = json.loads(firebase_creds_json)
+        if "private_key" in cred_dict:
+            cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+        
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+    return firestore.client()
 
 class AnalyzerService:
 
@@ -107,6 +112,7 @@ class AnalyzerService:
 
     @staticmethod
     def _save_to_firestore(records, response):
+        db = get_firestore_client()  # 🔹 ここで Firestore クライアントを取得
         db.collection("analysis").add({
             "records": [r.recordedAt.isoformat() for r in records],
             "result": response.dict(),
