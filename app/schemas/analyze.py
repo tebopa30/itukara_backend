@@ -1,11 +1,14 @@
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List, Literal, Optional
 from datetime import datetime
 
 class TaskRecordItem(BaseModel):
     recordedAt: datetime
 
 class AnalyzeRequest(BaseModel):
+    uid: str
+    taskId: str
+    taskTitle: Optional[str] = None
     records: List[TaskRecordItem]
 
 class AnalyzeResponse(BaseModel):
